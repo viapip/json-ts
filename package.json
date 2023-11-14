@@ -55,7 +55,6 @@
   "devDependencies": {
     "@sozdev/eslint-config": "^0.0.11",
     "@sozdev/rollup-build": "^0.0.10",
-    "@types/eslint": "^8",
     "eslint": "^8.53.0",
     "esno": "^4.0.0",
     "lint-staged": "^15.1.0",

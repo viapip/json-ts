@@ -8,41 +8,17 @@ import * as lib from './lib'
 
 import type { SomeJSONSchema } from 'ajv/dist/types/json-schema'
 
+/* ***************** Constants ***************** */
+
 const logger = consola.withTag('index')
+const schemaPath = path.resolve('schema')
+const ss = fs.readdirSync(schemaPath)
+  .map((f) => {
+    const p = path.resolve(schemaPath, f)
+    const c = fs.readFileSync(p, 'utf-8')
 
-/* ***************** Data ***************** */
-
-const ss: SomeJSONSchema[] = [
-  {
-    $id: 'foo',
-
-    type: 'object',
-    required: ['bar'],
-    properties: {
-      bar: { type: 'string' },
-    },
-    additionalProperties: false,
-  },
-  {
-    $id: 'bar',
-
-    type: 'object',
-    required: ['baz'],
-    properties: {
-      bar: { type: 'string' },
-      baz: { $ref: 'foo' },
-    },
-    additionalProperties: {
-      type: 'object',
-      required: ['bar1'],
-      properties: {
-        bar1: {
-          $ref: '#/properties/bar',
-        },
-      },
-    },
-  },
-]
+    return JSON.parse(c) as SomeJSONSchema
+  })
 
 /* ***************** Functions ***************** */
 
@@ -79,7 +55,7 @@ async function main() {
   await lib.disconnect()
 }
 
-/* ***************** Main ***************** */
+/* ***************** Run ***************** */
 
 main()
   .catch((err) => {

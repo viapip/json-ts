@@ -7,7 +7,7 @@ import consola from 'consola'
 import { addSchema, getSchema } from './lib/ajv'
 import { connect, get, keys } from './lib/redis'
 
-import type { SomeJTDSchemaType } from 'ajv/dist/core'
+import type { SomeJTDSchemaType } from 'ajv/dist/jtd'
 
 const logger = consola.withTag('index')
 

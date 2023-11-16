@@ -20,23 +20,23 @@ const ajv = new Ajv({
   validateSchema: true,
   ownProperties: true,
   inlineRefs: true,
-  uriResolver: {
-    resolve(base, path) {
-      logger.info({ base, path })
+  // uriResolver: {
+  //   resolve(base, path) {
+  //     logger.info({ base, path })
 
-      return new URL(path, base).href
-    },
-    parse(uri) {
-      logger.info({ uri })
+  //     return new URL(path, base).href
+  //   },
+  //   parse(uri) {
+  //     logger.info({ uri })
 
-      return new URL(uri)
-    },
-    serialize(component) {
-      logger.info({ component })
+  //     return new URL(uri)
+  //   },
+  //   serialize(component) {
+  //     logger.info({ component })
 
-      return component.path || ''
-    },
-  },
+  //     return component.path || ''
+  //   },
+  // },
 
   code: {
     esm: true,

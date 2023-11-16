@@ -5,52 +5,67 @@ import * as process from 'node:process'
 import consola from 'consola'
 
 import { addSchema, getSchema } from './lib/ajv'
-import { connect, get, keys } from './lib/redis'
+import { connect, disconnect, get, keys, set } from './lib/redis'
 
-import type { SomeJTDSchemaType } from 'ajv/dist/jtd'
+import type { SomeJSONSchema } from 'ajv/dist/types/json-schema'
 
 const logger = consola.withTag('index')
 
-const schemas: Record<string, SomeJTDSchemaType> = {
-  'definitions:foo': {
-    properties: { foo: { type: 'int32' } },
-    optionalProperties: { bar: { type: 'string' } },
+const ss: SomeJSONSchema[] = [
+  {
+    $id: 'foo',
+
+    type: 'object',
+    required: ['bar'],
+    properties: {
+      bar: {
+        type: 'string',
+      },
+    },
+
   },
 
-  'definitions:bar': {
-    properties: { bar: { type: 'int32' } },
-    optionalProperties: { foo: { ref: 'definitions:foo' } },
+  {
+    $id: 'bar',
+
+    type: 'object',
+    required: ['baz'],
+    properties: {
+      baz: {
+        $ref: 'foo',
+      },
+    },
   },
-}
+]
 
 async function run() {
   await connect()
 
-  for (const [id, schema] of Object.entries(schemas)) {
-    addSchema(schema, id)
+  for (const s of ss) {
+    await set(`${s.$id}`, s)
   }
 
-  const definitionsIds = await keys('definitions:*')
-  for (const id of definitionsIds) {
-    const schema = await get<SomeJTDSchemaType>(id)
-    if (!schema) {
-      continue
-    }
-
-    addSchema(schema, id)
-
-    const definition = getSchema(id)
-    if (!definition || !definition.source) {
-      continue
-    }
-
-    fs.writeFileSync(
-      path.resolve(`.out/${definition.source.validateName}.js`),
-      definition.source?.validateCode,
-    )
-
-    logger.info(definition)
+  const ids = await keys('*')
+  for (const id of ids) {
+    await get<SomeJSONSchema>(id)
+      .then((schema) => {
+        schema && addSchema(schema, id)
+      })
   }
+
+  for (const id of ids) {
+    const s = getSchema(id)
+    if (s?.source) {
+      fs.writeFileSync(
+        path.resolve(`.out/${s.source.validateName}.js`),
+        s.source?.validateCode,
+      )
+    }
+
+    logger.info('schema', s)
+  }
+
+  await disconnect()
 }
 
 run()

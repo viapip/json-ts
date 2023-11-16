@@ -29,7 +29,7 @@
         "eamodio.gitlens",
         "editorconfig.editorconfig",
         "esbenp.prettier-vscode",
-        "fagnercarvalho.redis-lsp"
+        "fagnercarvalho.redis-lsp",
         "formulahendry.auto-rename-tag",
         "foxundermoon.shell-format",
         "helixquar.randomeverything",
@@ -69,7 +69,7 @@
         "yatki.vscode-surround",
         "yoavbls.pretty-ts-errors",
         "Yseop.vscode-yseopml",
-        "zardoy.ts-essential-plugins",
+        "zardoy.ts-essential-plugins"
       ]
     }
   }

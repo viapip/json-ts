@@ -1,7 +1,7 @@
-import Ajv from 'ajv/dist/jtd'
+import Ajv from 'ajv'
 import consola from 'consola'
 
-import type { SomeJTDSchemaType } from 'ajv/dist/jtd'
+import type { SomeJSONSchema } from 'ajv/dist/types/json-schema'
 
 const logger = consola.withTag('ajv')
 
@@ -19,7 +19,25 @@ const ajv = new Ajv({
   passContext: true,
   validateSchema: true,
   ownProperties: true,
+  strictTypes: true,
   inlineRefs: true,
+
+  formats: {
+    timestamp: {
+      async: false,
+      type: 'string',
+
+      validate(date: string) {
+        const d = new Date(date)
+        if (Number.isNaN(d.getTime())) {
+          return false
+        }
+
+        return true
+      },
+    },
+  },
+
   // uriResolver: {
   //   resolve(base, path) {
   //     logger.info({ base, path })
@@ -41,15 +59,14 @@ const ajv = new Ajv({
   code: {
     esm: true,
     source: true,
-    lines: true,
     optimize: true,
   },
 })
 
-export function addSchema<S extends SomeJTDSchemaType>(schema: S, id: string) {
+export function addSchema<S extends SomeJSONSchema>(schema: S, id: string) {
   ajv.addSchema(schema, id, true, true)
 }
 
-export function getSchema<S extends SomeJTDSchemaType>(id: string) {
+export function getSchema<S extends SomeJSONSchema>(id: string) {
   return ajv.getSchema<S>(id)
 }

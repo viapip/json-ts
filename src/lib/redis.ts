@@ -8,7 +8,15 @@ const logger = consola.withTag('redis')
 const client = createClient({
   url: `${process.env.REDIS_URL}`,
 })
-  .on('error', logger.error)
+  .on('error', (err) => {
+    return logger.error(err)
+  })
+  .on('connect', () => {
+    return logger.info('connect')
+  })
+  .on('end', () => {
+    return logger.info('disconnect')
+  })
 
 export async function disconnect() {
   await client.disconnect()

@@ -4,12 +4,13 @@ import * as process from 'node:process'
 
 import consola from 'consola'
 
-import { addSchema, getSchema } from './lib/ajv'
-import { connect, disconnect, get, keys, set } from './lib/redis'
+import * as lib from './lib'
 
 import type { SomeJSONSchema } from 'ajv/dist/types/json-schema'
 
 const logger = consola.withTag('index')
+
+/* ***************** Data ***************** */
 
 const ss: SomeJSONSchema[] = [
   {
@@ -18,43 +19,50 @@ const ss: SomeJSONSchema[] = [
     type: 'object',
     required: ['bar'],
     properties: {
-      bar: {
-        type: 'string',
-      },
+      bar: { type: 'string' },
     },
-
+    additionalProperties: false,
   },
-
   {
     $id: 'bar',
 
     type: 'object',
     required: ['baz'],
     properties: {
-      baz: {
-        $ref: 'foo',
+      bar: { type: 'string' },
+      baz: { $ref: 'foo' },
+    },
+    additionalProperties: {
+      type: 'object',
+      required: ['bar1'],
+      properties: {
+        bar1: {
+          $ref: '#/properties/bar',
+        },
       },
     },
   },
 ]
 
-async function run() {
-  await connect()
+/* ***************** Functions ***************** */
+
+async function main() {
+  await lib.connect()
 
   for (const s of ss) {
-    await set(`${s.$id}`, s)
+    await lib.set(`${s.$id}`, s)
   }
 
-  const ids = await keys('*')
+  const ids = await lib.keys('*')
   for (const id of ids) {
-    await get<SomeJSONSchema>(id)
+    await lib.get<SomeJSONSchema>(id)
       .then((schema) => {
-        schema && addSchema(schema, id)
+        schema && lib.addSchema(schema, id)
       })
   }
 
   for (const id of ids) {
-    const s = getSchema(id)
+    const s = lib.getSchema(id)
     if (s?.source) {
       fs.writeFileSync(
         path.resolve(`.out/${s.source.validateName}.js`),
@@ -62,13 +70,18 @@ async function run() {
       )
     }
 
-    logger.info('schema', s)
+    logger.info(
+      `schema:${id}`,
+      JSON.stringify(s?.schema, null, 2),
+    )
   }
 
-  await disconnect()
+  await lib.disconnect()
 }
 
-run()
+/* ***************** Main ***************** */
+
+main()
   .catch((err) => {
     logger.error(err)
     process.exit(1)

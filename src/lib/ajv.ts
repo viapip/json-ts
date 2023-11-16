@@ -22,40 +22,6 @@ const ajv = new Ajv({
   strictTypes: true,
   inlineRefs: true,
 
-  formats: {
-    timestamp: {
-      async: false,
-      type: 'string',
-
-      validate(date: string) {
-        const d = new Date(date)
-        if (Number.isNaN(d.getTime())) {
-          return false
-        }
-
-        return true
-      },
-    },
-  },
-
-  // uriResolver: {
-  //   resolve(base, path) {
-  //     logger.info({ base, path })
-
-  //     return new URL(path, base).href
-  //   },
-  //   parse(uri) {
-  //     logger.info({ uri })
-
-  //     return new URL(uri)
-  //   },
-  //   serialize(component) {
-  //     logger.info({ component })
-
-  //     return component.path || ''
-  //   },
-  // },
-
   code: {
     esm: true,
     source: true,
@@ -64,7 +30,7 @@ const ajv = new Ajv({
 })
 
 export function addSchema<S extends SomeJSONSchema>(schema: S, id: string) {
-  ajv.addSchema(schema, id, true, true)
+  ajv.addSchema(schema, id)
 }
 
 export function getSchema<S extends SomeJSONSchema>(id: string) {

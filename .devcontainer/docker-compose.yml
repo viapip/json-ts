@@ -14,7 +14,7 @@ services:
       - ../..:/workspaces:cached
 
   redis:
-    image: redis:latest
+    image: redis/redis-stack-server:latest
     restart: unless-stopped
     environment:
       - ALLOW_EMPTY_PASSWORD=yes

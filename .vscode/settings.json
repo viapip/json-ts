@@ -56,6 +56,7 @@
         "name": "semyenov",
         "host": "redis",
         "accessKey": "",
+        "filter": "*",
         "port": "6379"
       }
     ],
@@ -75,6 +76,13 @@
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "[ignore]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  },
+  "redis-console.host": "localhost",
+  "redis-console.port": 6379,
+  "redis-console.password": "",
+  "redis-console.hostIpFamily": 4,
+  "[dotenv]": {
     "editor.defaultFormatter": "foxundermoon.shell-format"
   }
 }

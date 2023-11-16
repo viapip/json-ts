@@ -8,19 +8,17 @@ const logger = consola.withTag('ajv')
 const ajv = new Ajv({
   logger,
 
-  jtd: true,
   schemaId: '$id',
-  timestamp: 'date',
 
   meta: true,
+  strict: true,
   verbose: true,
   messages: true,
   allErrors: true,
-  passContext: true,
-  validateSchema: true,
-  ownProperties: true,
-  strictTypes: true,
   inlineRefs: true,
+  passContext: true,
+  ownProperties: true,
+  validateSchema: true,
 
   code: {
     esm: true,

@@ -1,6 +1,6 @@
-import * as fs from 'node:fs'
-import * as path from 'node:path'
-import * as process from 'node:process'
+import { readFile, readdir, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { exit } from 'node:process'
 
 import consola from 'consola'
 
@@ -11,19 +11,14 @@ import type { SomeJSONSchema } from 'ajv/dist/types/json-schema'
 /* ***************** Constants ***************** */
 
 const logger = consola.withTag('index')
-const schemaPath = path.resolve('schema')
-const ss = fs.readdirSync(schemaPath)
-  .map((f) => {
-    const p = path.resolve(schemaPath, f)
-    const c = fs.readFileSync(p, 'utf-8')
-
-    return JSON.parse(c) as SomeJSONSchema
-  })
+const schemaPath = resolve('./schema')
 
 /* ***************** Functions ***************** */
 
 async function main() {
   await lib.connect()
+
+  const ss = await readSchemaFiles()
 
   for (const s of ss) {
     await lib.set(`${s.$id}`, s)
@@ -40,8 +35,8 @@ async function main() {
   for (const id of ids) {
     const s = lib.getSchema(id)
     if (s?.source) {
-      fs.writeFileSync(
-        path.resolve(`.out/${s.source.validateName}.js`),
+      await writeFile(
+        resolve(`.out/${s.source.validateName}.js`),
         s.source?.validateCode,
       )
     }
@@ -55,13 +50,25 @@ async function main() {
   await lib.disconnect()
 }
 
+async function readSchemaFiles() {
+  const files = await readdir(schemaPath)
+  const schemas = await Promise.all(files.map(async (file) => {
+    const filePath = resolve(schemaPath, file)
+    const content = await readFile(filePath, 'utf-8')
+
+    return JSON.parse(content) as SomeJSONSchema
+  }))
+
+  return schemas
+}
+
 /* ***************** Run ***************** */
 
 main()
   .catch((err) => {
     logger.error(err)
-    process.exit(1)
+    exit(1)
   })
   .finally(() => {
-    process.exit(0)
+    exit(0)
   })

@@ -36,6 +36,7 @@ export async function get<T>(path: string) {
 }
 
 export async function set<T>(path: string, value: T) {
+  logger.info('set', path, value)
   await client.json.set(path, '$', value as any)
 }
 

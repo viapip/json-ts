@@ -1,74 +1,63 @@
-import { readFile, readdir, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { exit } from 'node:process'
 
 import consola from 'consola'
 
 import * as lib from './lib'
 
-import type { SomeJSONSchema } from 'ajv/dist/types/json-schema'
+import type { JSONSchema7 } from 'json-schema'
 
 /* ***************** Constants ***************** */
 
 const logger = consola.withTag('index')
-const schemaPath = resolve('./schema')
+const schemaMap = new Map<string, JSONSchema7 | string>([
+  ['geojson', 'https://geojson.org/schema/FeatureCollection.json'],
+  ['tilejson', './schema/tilejson.json'],
+])
 
 /* ***************** Functions ***************** */
 
 async function main() {
   await lib.connect()
+  await loadSchema()
 
-  const ss = await readSchemaFiles()
-
-  for (const s of ss) {
-    await lib.set(`${s.$id}`, s)
-  }
-
-  const ids = await lib.keys('*')
+  const ids = await lib.keys('schema:*')
   for (const id of ids) {
-    await lib.get<SomeJSONSchema>(id)
+    await lib.get<JSONSchema7>(id)
       .then((schema) => {
         schema && lib.addSchema(schema, id)
       })
   }
 
   for (const id of ids) {
-    const s = lib.getSchema(id)
-    if (s?.source) {
+    const validator = lib.getSchema(id)
+    if (validator?.source) {
       await writeFile(
-        resolve(`.out/${s.source.validateName}.js`),
-        s.source?.validateCode,
+        resolve(`.out/${id}.js`),
+        lib.standaloneCode(validator),
       )
     }
 
     logger.info(
       `schema:${id}`,
-      JSON.stringify(s?.schema, null, 2),
+      JSON.stringify(validator?.schema, null, 2),
     )
   }
 
   await lib.disconnect()
 }
 
-async function readSchemaFiles() {
-  const files = await readdir(schemaPath)
-  const schemas = await Promise.all(files.map(async (file) => {
-    const filePath = resolve(schemaPath, file)
-    const content = await readFile(filePath, 'utf-8')
+async function loadSchema() {
+  for (const [id, schema] of schemaMap) {
+    if (typeof schema === 'string') {
+      lib.getSchema(schema)
+      continue
+    }
 
-    return JSON.parse(content) as SomeJSONSchema
-  }))
-
-  return schemas
+    lib.addSchema(schema, id)
+  }
 }
 
 /* ***************** Run ***************** */
 
 main()
-  .catch((err) => {
-    logger.error(err)
-    exit(1)
-  })
-  .finally(() => {
-    exit(0)
-  })

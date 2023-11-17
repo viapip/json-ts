@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   devcontainer:
-    image: mcr.microsoft.com/vscode/devcontainers/typescript-node:latest
+    image: gitea.local/sozdev/devcontainer-ts
     restart: unless-stopped
     command: tail -f /dev/null
     environment:
@@ -14,7 +14,7 @@ services:
       - ../..:/workspaces:cached
 
   redis:
-    image: redis/redis-stack-server:latest
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
     restart: unless-stopped
     environment:
       - ALLOW_EMPTY_PASSWORD=yes

@@ -18,43 +18,38 @@ const client = createClient({
     return logger.info('disconnect')
   })
 
+export async function getSchema<T>(id: string) {
+  return get<T>(`schema:${id}`)
+}
+
+export async function setSchema<T>(id: string, schema: T) {
+  return set(`schema:${id}`, schema)
+}
+
 export async function disconnect() {
-  await client.disconnect()
+  return client.disconnect()
 }
 
 export async function connect() {
-  await client.connect()
+  return client.connect()
+}
+
+export async function ping() {
+  return client.ping()
 }
 
 export async function get<T>(path: string) {
-  const data = await client.json.get(path)
-  if (!data) {
-    return null
-  }
-
-  return data as T
+  return client.json.get(path) as T
 }
 
 export async function set<T>(path: string, value: T) {
-  logger.info('set', path, value)
-  await client.json.set(path, '$', value as any)
+  return client.json.set(path, '$', value as any)
 }
 
 export async function del(path: string) {
-  await client.json.del(path)
-}
-
-export async function exists(path: string) {
-  const data = await get(path)
-  if (!data) {
-    return false
-  }
-
-  return true
+  return client.json.del(path)
 }
 
 export async function keys(pattern: string) {
-  const keys = await client.keys(pattern)
-
-  return keys
+  return client.keys(pattern)
 }

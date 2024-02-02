@@ -1,9 +1,7 @@
-/* eslint-disable unused-imports/no-unused-imports */
 import config from '@sozdev/eslint-config'
 import eslintPluginStylisticTs from '@stylistic/eslint-plugin-ts'
-import { Linter } from 'eslint'
 
-/** @type {Linter.FlatConfig} */
+/** @type {import('eslint').Linter.FlatConfig} */
 const schema = [
   ...config,
   {

@@ -3,8 +3,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext", "DOM"],
-    "baseUrl": ".",
-    "rootDir": "./src",
+    "baseUrl": "./",
+    "rootDir": "./",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noResolve": false,
@@ -26,5 +26,5 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["./src/**/*"]
+  "include": ["./src/**/*", "./types/**/*"]
 }

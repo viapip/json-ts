@@ -86,5 +86,8 @@
     "editor.defaultFormatter": "foxundermoon.shell-format"
   },
   "git-blame.gitWebUrl": "",
-  "workbench.colorCustomizations": {}
+  "workbench.colorCustomizations": {},
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  }
 }

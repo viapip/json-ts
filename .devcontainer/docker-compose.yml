@@ -7,9 +7,9 @@ services:
     command: tail -f /dev/null
     environment:
       - NODE_ENV=development
-      - NITRO_PORT=3000
+      - NITRO_PORT=4000
     ports:
-      - 3000:3000
+      - 4000:4000
     volumes:
       - ../..:/workspaces:cached
 

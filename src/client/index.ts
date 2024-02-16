@@ -2,7 +2,7 @@ import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client'
 import consola from 'consola'
 import { WebSocket } from 'ws'
 
-import type { AppRouter } from '../app/routers'
+import type { AppRouter } from '../server/router'
 
 const logger = consola.withTag('client')
 
@@ -36,27 +36,17 @@ for (let i = 0; i < 10; i++) {
     })
 }
 
-let count = 0
-await new Promise<void>((resolve) => {
-  const subscription = trpc.post.randomNumber.subscribe(undefined, {
-    onStarted() {
-      logger.log('started')
-    },
-    onData(data) {
-      logger.log('received', data)
-      count++
-      if (count > 3) {
-        subscription.unsubscribe()
-        resolve()
-      }
-    },
-    onComplete() {
-      logger.log('complete')
-    },
-    onError(err) {
-      logger.error('error', err)
-    },
-  })
+trpc.users.randomNumber.subscribe(undefined, {
+  onStarted() {
+    logger.log('started')
+  },
+  onData(data) {
+    logger.log('job done', data)
+  },
+  onComplete() {
+    logger.log('complete')
+  },
+  onError(err) {
+    logger.error('error', err)
+  },
 })
-
-wsClient.close()

@@ -5,19 +5,13 @@ const logger = consola.withTag('server/trpc')
 
 export const transformer = {
   input: {
-    serialize: (obj: unknown) => {
+    serialize: (obj: unknown): Uint8Array => {
       logger.log('input.serialize', obj)
-      if (!obj) {
-        return
-      }
 
       return encode(obj)
     },
-    deserialize: (obj: unknown) => {
+    deserialize: (obj: object) => {
       logger.log('input.deserialize', obj)
-      if (!obj) {
-        return
-      }
 
       return decode(Object.values(obj))
     },
@@ -26,17 +20,10 @@ export const transformer = {
     serialize: (obj: unknown) => {
       logger.log('output.serialize', obj)
 
-      if (!obj) {
-        return
-      }
-
       return encode(obj)
     },
-    deserialize: (obj: unknown) => {
+    deserialize: (obj: object) => {
       logger.log('output.deserialize', obj)
-      if (!obj) {
-        return
-      }
 
       return decode(Object.values(obj))
     },

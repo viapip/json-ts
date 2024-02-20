@@ -8,31 +8,48 @@ import { transformer } from '~/transformer'
 const logger = consola.withTag('client')
 
 const wsClient = createWSClient({
-  url() {
-    return 'ws://localhost:4000'
-  },
+  url: 'ws://localhost:4000',
   WebSocket: WebSocket as any,
-  onOpen() {
-    logger.log('Connected')
-  },
-  onClose() {
-    logger.log('Disconnected')
-  },
 })
 
+const ws = wsClient.getConnection()
+
+ws.addEventListener(
+  'open',
+  () => {
+    logger.log('Connection opened')
+  },
+)
+ws.addEventListener(
+  'close',
+  () => {
+    logger.log('Connection closed')
+  },
+)
+ws.addEventListener(
+  'message',
+  ({ data, type }) => {
+    logger.log(type, data.toString())
+  },
+)
+ws.addEventListener(
+  'error',
+  (err) => {
+    logger.error('Connection error', err)
+  },
+)
+
 const trpc = createTRPCProxyClient<AppRouter>({
+  links: [wsLink({ client: wsClient })],
   transformer,
-  links: [
-    wsLink({
-      client: wsClient,
-    }),
-  ],
 })
 
 const users = await trpc.users.userList.query()
 logger.log('Users:', users)
 
-const createdUser = await trpc.users.userCreate.mutate({ name: 'sachinraja' })
+const createdUser = await trpc.users.userCreate.mutate({
+  name: 'Test',
+})
 logger.log('Created user:', createdUser)
 
 for (let i = 0; i < 10; i++) {

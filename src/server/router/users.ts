@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 import { publicProcedure, router, wsProcedure } from '../trpc'
 
-import { queueEvents } from '~/queue/events'
+import { queueEvents } from '~/server/queue/events'
 import { sleep } from '~/utils'
 
 const logger = consola.withTag('server/users')
@@ -33,20 +33,22 @@ export const usersRouter = router({
     .input(z.object({
       name: z.string(),
     }))
-    .mutation(async ({ input, ctx: { redis } }) => {
+    .mutation(async ({ input, ctx: { redis, validateSchema } }) => {
+      validateSchema('user', input)
       const user = await redis.users.insert(input)
 
       return user
     }),
 
-  randomNumber: wsProcedure.subscription(() => {
-    return observable<{ status: number }>((emit) => {
-      queueEvents.on('completed', ({ returnvalue }) => {
-        const next = returnvalue as unknown as { status: number }
-        emit.next(next)
+  randomNumber: wsProcedure
+    .subscription(() => {
+      return observable<{ status: number }>((emit) => {
+        queueEvents.on('completed', ({ returnvalue }) => {
+          const next = returnvalue as unknown as { status: number }
+          emit.next(next)
+        })
       })
-    })
-  }),
+    }),
 })
 
 export type UsersRouter = typeof usersRouter

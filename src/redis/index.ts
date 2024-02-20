@@ -1,7 +1,7 @@
 // import consola from 'consola'
 import { createClient } from 'redis'
 
-export interface User { id: string, name: string }
+export interface User { id: string; name: string }
 
 export const connection = createClient({ url: 'redis://redis:6379' })
 await connection.connect()
@@ -57,8 +57,7 @@ function createCRUD<T extends { id: string }>(prefix = '') {
   }
 
   const getAll = async () => {
-    const pattern = formatPattern('*')
-    const userKeys = await connection.keys(pattern)
+    const userKeys = await getKeys()
     if (userKeys.length === 0) {
       return []
     }

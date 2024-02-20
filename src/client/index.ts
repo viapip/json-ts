@@ -2,7 +2,8 @@ import { createTRPCProxyClient, createWSClient, wsLink } from '@trpc/client'
 import consola from 'consola'
 import { WebSocket } from 'ws'
 
-import type { AppRouter } from '../server/router'
+import type { AppRouter } from '~/server/router'
+import { transformer } from '~/transformer'
 
 const logger = consola.withTag('client')
 
@@ -12,15 +13,20 @@ const wsClient = createWSClient({
   },
   WebSocket: WebSocket as any,
   onOpen() {
-    logger.log('connected')
+    logger.log('Connected')
   },
   onClose() {
-    logger.log('disconnected')
+    logger.log('Disconnected')
   },
 })
 
 const trpc = createTRPCProxyClient<AppRouter>({
-  links: [wsLink({ client: wsClient })],
+  transformer,
+  links: [
+    wsLink({
+      client: wsClient,
+    }),
+  ],
 })
 
 const users = await trpc.users.userList.query()
@@ -32,21 +38,21 @@ logger.log('Created user:', createdUser)
 for (let i = 0; i < 10; i++) {
   trpc.users.userById.query(i.toString())
     .then((user) => {
-      logger.log('User:', user)
+      logger.log('User:', user?.id)
     })
 }
 
 trpc.users.randomNumber.subscribe(undefined, {
   onStarted() {
-    logger.log('started')
+    logger.log('Started')
   },
   onData(data) {
-    logger.log('job done', data)
+    logger.log('Job done', data.status)
   },
   onComplete() {
-    logger.log('complete')
+    logger.log('Complete')
   },
   onError(err) {
-    logger.error('error', err)
+    logger.error('Error', err)
   },
 })

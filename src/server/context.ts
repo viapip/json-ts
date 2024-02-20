@@ -1,5 +1,5 @@
-import { queue } from '../queue'
-import { createRedisStore } from '../redis'
+import { queue } from '~/queue'
+import { createRedisStore } from '~/redis'
 
 import type { CreateHTTPContextOptions } from '@trpc/server/adapters/standalone'
 import type { CreateWSSContextFnOptions } from '@trpc/server/adapters/ws'

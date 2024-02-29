@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises'
 
-// import consola from 'consola'
-import { fork, group, keys, mapEntries } from 'radash'
+import { fork, keys } from 'radash'
+
+import type { AnySchema } from 'ajv'
 
 export type JTDFieldType = 'string' | 'int32' | 'boolean' | 'enum'
 
@@ -31,25 +32,40 @@ const fieldsTypeMap: Record<Field['type'], JTDFieldType> = {
 
 const fieldsJson = await fs.readFile('./data/fields.json', 'utf8')
 const fields: Field[] = JSON.parse(fieldsJson)
-const fieldsByGroup = group(fields, (item) => {
-  return item.group
-})
-const fieldsJTD = mapEntries(fieldsByGroup, (key, fields) => {
-  return [key, convertFields(fields)]
-})
 
-for (const [key, value] of Object.entries(fieldsJTD)) {
-  fs.writeFile(`./defs/${key}.jtd.json`, `${JSON.stringify(value, null, 2)}\n`, {
+const fieldsJTD = new Map<string, { metadata: Record<string, Partial<Field>>; items: Field[] }>()
+
+for (const fieldItem of fields) {
+  const fieldsGroup = fieldsJTD.get(fieldItem.group) || {
+    metadata: {},
+    items: [],
+  }
+
+  fieldsGroup.metadata[fieldItem._id] = {
+    info: fieldItem.info,
+    group: fieldItem.group,
+    mandate: fieldItem.mandate,
+  }
+
+  fieldsGroup.items.push(fieldItem)
+  fieldsJTD.set(fieldItem.group, fieldsGroup)
+}
+
+fieldsJTD.forEach((value, key) => {
+  const convertedField = convertFields(value.items, value.metadata)
+
+  fs.writeFile(`./defs/${key}.jtd.json`, `${JSON.stringify(convertedField, null, 2)}\n`, {
     encoding: 'utf8',
     flag: 'w',
   })
-}
+})
 
 function convertFields(
   fields: Field[] | undefined,
-): any {
+  metadata: Record<string, Partial<Field>>,
+): AnySchema {
   if (!fields) {
-    return
+    return {}
   }
 
   const [required, optional] = fork(fields, (field) => {
@@ -69,6 +85,7 @@ function convertFields(
   }, {})
 
   return {
+    metadata,
     properties,
     optionalProperties: optional.length > 0
       ? optionalProperties
@@ -78,13 +95,6 @@ function convertFields(
 
 function fieldToJTD(field: Field): any {
   const type = fieldsTypeMap[field.type]
-
-  // const metadata = {
-  //   group: field.group,
-  //   mandate: field.mandate,
-  //   name: field.info.name,
-  //   group_name: field.info.group_name,
-  // }
 
   if (type === 'enum') {
     return {

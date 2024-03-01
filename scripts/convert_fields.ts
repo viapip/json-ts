@@ -32,37 +32,60 @@ const fieldsTypeMap: Record<Field['type'], JTDFieldType> = {
 
 const fieldsJson = await fs.readFile('./data/fields.json', 'utf8')
 const fields: Field[] = JSON.parse(fieldsJson)
+// const fieldGroups = group(fields, (field) => {
+//   return field.group
+// })
 
-const fieldsJTD = new Map<string, { metadata: Record<string, Partial<Field>>; items: Field[] }>()
+const fieldsJTD = new Map<string, Field[]>()
 
 for (const fieldItem of fields) {
-  const fieldsGroup = fieldsJTD.get(fieldItem.group) || {
-    metadata: {},
-    items: [],
-  }
+  const fieldsGroup = fieldsJTD.get(fieldItem.group) || []
 
-  fieldsGroup.metadata[fieldItem._id] = {
-    info: fieldItem.info,
-    group: fieldItem.group,
-    mandate: fieldItem.mandate,
-  }
-
-  fieldsGroup.items.push(fieldItem)
+  fieldsGroup.push(fieldItem)
   fieldsJTD.set(fieldItem.group, fieldsGroup)
 }
 
 fieldsJTD.forEach((value, key) => {
-  const convertedField = convertFields(value.items, value.metadata)
+  const convertedField = convertFields(value)
+  const preparedI18n = convertToI18n(value)
+  console.log(preparedI18n)
+  writeFile(`./defs/${key}.jtd.json`, convertedField)
+  writeFile(`./locales/ru/${key}.i18n.json`, preparedI18n)
+})
 
-  fs.writeFile(`./defs/${key}.jtd.json`, `${JSON.stringify(convertedField, null, 2)}\n`, {
+function converterI18n(object: Record<string, any>, path: string = '') {
+  return Object.entries(object)
+    .reduce((sum, [k, v]) => {
+      const p = path ? `${path}.${k}` : `${k}`
+
+      if (typeof v === 'object') {
+        sum = { ...sum, ...converterI18n(v, p) }
+
+        return sum
+      }
+      sum[p] = v
+
+      return sum
+    }, {})
+}
+
+function convertToI18n(fields: Field[]) {
+  return fields.reduce((sum, field) => {
+    sum[field._id] = converterI18n(field)
+
+    return sum
+  }, {})
+}
+
+function writeFile(path: string, data: unknown) {
+  fs.writeFile(path, `${JSON.stringify(data, null, 2)}\n`, {
     encoding: 'utf8',
     flag: 'w',
   })
-})
+}
 
 function convertFields(
   fields: Field[] | undefined,
-  metadata: Record<string, Partial<Field>>,
 ): AnySchema {
   if (!fields) {
     return {}
@@ -85,7 +108,6 @@ function convertFields(
   }, {})
 
   return {
-    metadata,
     properties,
     optionalProperties: optional.length > 0
       ? optionalProperties

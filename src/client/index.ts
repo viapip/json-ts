@@ -48,8 +48,19 @@ const users = await trpc.users.userList.query()
 logger.log('Users:', users)
 
 const createdUser = await trpc.users.userCreate.mutate({
-  name: 'Test',
+  data: {
+    name: 'Test',
+  },
+  id: '',
 })
+
+await trpc.users.userUpdate.mutate({
+  data: {
+    name: 'updated',
+  },
+  id: '2',
+})
+
 logger.log('Created user:', createdUser)
 
 for (let i = 0; i < 10; i++) {

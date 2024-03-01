@@ -2,6 +2,7 @@ import { observable } from '@trpc/server/observable'
 import consola from 'consola'
 import { z } from 'zod'
 
+import { validateSchema } from '../ajv'
 import { publicProcedure, router, wsProcedure } from '../trpc'
 
 import { queueEvents } from '~/server/queue/events'
@@ -30,14 +31,20 @@ export const usersRouter = router({
     }),
 
   userCreate: publicProcedure
-    .input(z.object({
-      name: z.string(),
-    }))
-    .mutation(async ({ input, ctx: { redis, validateSchema } }) => {
-      validateSchema('user', input)
+    .input(validateSchema('user'))
+    .mutation(async ({ input, ctx: { redis } }) => {
+      // const validatedData = validateSchema('user', '', input)
       const user = await redis.users.insert(input)
 
       return user
+    }),
+
+  userUpdate: publicProcedure
+    .input(validateSchema('user'))
+    .mutation(async ({ input }) => {
+      // const user = await redis.users.updateById(input)
+
+      return input
     }),
 
   randomNumber: wsProcedure
